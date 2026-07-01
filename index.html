@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridgewell Table · Template</title>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* Per-module accent — overridden at runtime from TABLE.theme.accent (see boot()) */
+  --accent:#4F81BD;
+  --accent-hover:#3a6da8;
+  --accent-focus:#7ab0e0;
+  --accent-soft:rgba(79,129,189,.07);
+  --accent-soft2:rgba(79,129,189,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1424}
+body{font-family:var(--font-sans);display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:920px;min-height:580px;font-family:var(--font-sans);background:#1a2744;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;border-radius:4px}
+.screen{display:none;width:100%;min-height:580px}
+.screen.active{display:flex}
+
+/* AVERY SCREENS */
+.avery-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.avery-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 1rem;display:block}
+.avery-photo-ph{width:90px;height:90px;border-radius:50%;background:#2d3f6e;border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;color:#a0b4cc;font-size:.7rem;text-align:center}
+.avery-label{color:#a0b4cc;font-size:.75rem;letter-spacing:.06em;margin-bottom:.2rem}
+.avery-title{color:#fff;font-size:1.15rem;font-weight:600;margin-bottom:.2rem}
+.avery-sub{color:#7a90b0;font-size:.8rem;margin-bottom:1.2rem}
+.avery-quote{color:#d0dcea;font-size:.9rem;line-height:1.8;max-width:500px;margin:0 auto .9rem;font-style:italic}
+.avery-body{color:#b0c4d8;font-size:.83rem;line-height:1.75;max-width:500px;margin:0 auto 1.5rem}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.8rem;font-size:.9rem;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-primary:hover,.btn-primary:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+
+/* AUDIO BAR */
+.audio-wrap{display:flex;align-items:center;gap:.6rem;max-width:360px;margin:0 auto 1.1rem}
+.audio-play{width:32px;height:32px;border-radius:50%;background:var(--accent);border:2px solid transparent;cursor:pointer;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play:hover,.audio-play:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+.audio-track{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .25s linear}
+.audio-time{color:#7a90b0;font-size:.7rem;min-width:34px;text-align:right}
+.audio-error{color:#e07a7a;font-size:.72rem;margin-top:.3rem;display:none}
+.transcript-btn{background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;margin-top:.4rem}
+.transcript-btn:hover,.transcript-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.transcript-box{background:#0d1a30;border:1px solid #2d3f6e;border-radius:6px;padding:.75rem 1rem;font-size:.78rem;color:#b0c4d8;line-height:1.65;max-width:500px;margin:.5rem auto 0;text-align:left;display:none}
+
+/* HUB */
+.hub-screen{flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;background:#1a2744;min-height:580px;position:relative}
+.hub-title{color:#fff;font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.hub-sub{color:#7a90b0;font-size:.78rem;margin-bottom:.9rem;text-align:center}
+.prog-wrap{width:100%;max-width:500px;height:5px;background:#2d3f6e;border-radius:3px;margin-bottom:.35rem}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.prog-label{color:#7a90b0;font-size:.72rem;margin-bottom:1.4rem}
+.char-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;width:100%;max-width:640px}
+@media(max-width:600px){.char-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:380px){.char-grid{grid-template-columns:repeat(2,1fr)}}
+.char-card{border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.char-card:hover:not(.done),.char-card:focus:not(.done){transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.4);outline:none}
+.char-card:focus:not(.done){outline:2px solid #fff;outline-offset:2px}
+.char-card.done{opacity:.5;cursor:default}
+.char-avatar{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;object-fit:cover;border:2px solid rgba(255,255,255,.25);display:block}
+.char-avatar-ph{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:.85rem;border:2px solid rgba(255,255,255,.2)}
+.char-name{font-size:.74rem;font-weight:600;color:#fff}
+.char-role{font-size:.63rem;color:rgba(255,255,255,.5);margin-top:.1rem;line-height:1.3}
+.done-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.reset-btn{margin-top:1.5rem;background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.4rem 1rem;font-size:.75rem;cursor:pointer}
+.reset-btn:hover,.reset-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.debrief-btn{position:absolute;right:1.1rem;bottom:1.1rem;background:#2d3f6e;color:#fff;border:1px solid #43578a;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer}
+.debrief-btn:hover{background:#37487a}
+
+/* SPLIT SCREENS */
+.split-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.split-screen{flex-direction:column}}
+.s-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:280px}
+@media(max-width:700px){.s-left{flex:0 0 220px}}
+.s-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.s-left-color{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+.char-portrait{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem;display:block}
+.char-portrait-ph{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem}
+.char-name-large{color:#fff;font-size:1.1rem;font-weight:600;margin-bottom:.2rem}
+.char-role-large{color:rgba(255,255,255,.6);font-size:.78rem}
+
+.bubble{position:absolute;top:.9rem;left:.9rem;right:.9rem;background:rgba(15,25,50,.88);border-left:3px solid var(--accent);color:#d0dcea;border-radius:8px;padding:.6rem .8rem;font-size:.76rem;line-height:1.5;font-style:italic;max-width:240px}
+.family-flag{position:absolute;bottom:.8rem;left:.8rem;background:rgba(150,70,10,.9);border-radius:7px;padding:.5rem .7rem;font-size:.71rem;color:#fff;line-height:1.4;max-width:240px}
+.family-flag strong{display:block;font-size:.65rem;letter-spacing:.04em;margin-bottom:.12rem;opacity:.85}
+
+.s-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.scene-ctx{font-size:.79rem;color:#444;line-height:1.6;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #ced3dc}
+.q-label{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.3rem;text-transform:uppercase}
+.q-text{font-size:.86rem;font-weight:600;color:#1a2744;line-height:1.5;margin-bottom:.85rem}
+.choices{display:flex;flex-direction:column;gap:.55rem}
+.choice-btn{display:flex;align-items:flex-start;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;text-align:left;padding:.35rem .4rem;transition:border-color .15s}
+.choice-btn:hover,.choice-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.choice-btn.selected{border-color:var(--accent);background:var(--accent-soft2)}
+.cbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;margin-top:1px;flex-shrink:0}
+.choice-btn:hover .cbullet,.choice-btn:focus-visible .cbullet{background:var(--accent)}
+.choice-btn.selected .cbullet{background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ctext{font-size:.8rem;color:#222;line-height:1.5}
+
+/* CHAR INTRO SCREEN */
+.char-intro-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.char-intro-screen{flex-direction:column}}
+.ci-audio-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.92);border-top:2px solid;padding:.6rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ci-play{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-play:hover,.ci-play:focus{opacity:.85;outline:2px solid #fff;outline-offset:2px}
+.ci-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer}
+.ci-fill{height:100%;border-radius:2px;width:0%}
+.ci-time{color:rgba(255,255,255,.45);font-size:.66rem;min-width:28px}
+
+/* FEEDBACK */
+.fb-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.fb-screen{flex-direction:column}}
+.fb-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:240px}
+@media(max-width:700px){.fb-left{flex:0 0 200px}}
+.fb-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-left-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.consequence-banner{position:absolute;bottom:0;left:0;right:0;background:rgba(120,20,20,.92);padding:.7rem .9rem;font-size:.74rem;color:#fff;line-height:1.5}
+.consequence-banner strong{display:block;font-size:.64rem;letter-spacing:.04em;margin-bottom:.12rem}
+.avery-interrupt{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.94);border-top:2px solid var(--accent);padding:.7rem .9rem;font-size:.74rem;color:#d0dcea;line-height:1.5;font-style:italic}
+.avery-interrupt strong{display:block;font-size:.64rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.12rem;font-style:normal}
+.fb-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.fb-chosen{font-size:.8rem;color:#333;font-weight:500;margin-bottom:.6rem;line-height:1.5;padding:.5rem .7rem;background:#dde2eb;border-radius:6px;border-left:3px solid #9ab0cc}
+.fb-chosen.correct{background:#e7f2da;border-left:4px solid #2f7d1f;color:#234016}
+.fb-chosen.wrong{background:#f7dede;border-left:4px solid #c0392b;color:#5a1f18}
+.fb-chosen.wrong::before{content:'\2717  INCORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#c0392b;margin-bottom:.25rem}
+.fb-chosen.correct::before{content:'\2713  CORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#2f7d1f;margin-bottom:.25rem}
+.fb-lbl{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.22rem;text-transform:uppercase}
+.fb-text{font-size:.8rem;color:#333;line-height:1.6;margin-bottom:.7rem}
+.fb-takeaway{font-size:.8rem;font-weight:600;font-style:italic;color:#1D3D0F;line-height:1.6;margin-bottom:.9rem;padding:.5rem .7rem;border-left:3px solid #1D3D0F;background:#eaf3de;border-radius:0 6px 6px 0}
+.fb-actions{display:flex;flex-direction:column;gap:.45rem}
+.fb-btn{display:flex;align-items:center;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;padding:.25rem .35rem;transition:border-color .15s}
+.fb-btn:hover,.fb-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.fbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;flex-shrink:0}
+.fb-btn:hover .fbullet,.fb-btn:focus-visible .fbullet{background:var(--accent)}
+.fb-btn-text{font-size:.8rem;color:#222}
+
+/* LIVE REGION */
+#live-region{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* EXIT */
+.exit-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.exit-ring{width:68px;height:68px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--accent);font-size:1.5rem}
+</style>
+</head>
+<body>
+
+<div id="app" role="main">
+<div aria-live="polite" aria-atomic="true" id="live-region"></div>
+
+<!-- INTRO (text filled by boot() from TABLE) -->
+<div class="screen avery-screen active" id="screen-intro" role="region" aria-label="Course introduction">
+  <img class="avery-photo" id="intro-avery-photo" src="assets/avery.png" alt="Dr. Patricia Avery" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+  <div class="avery-photo-ph" style="display:none">DA</div>
+  <div class="avery-label" id="intro-avery-label"></div>
+  <div class="avery-title" id="intro-title"></div>
+  <div class="avery-sub" id="intro-sub"></div>
+  <div class="audio-wrap" id="aw-intro">
+    <button class="audio-play" id="btn-avery_intro" onclick="toggleAudio('avery_intro')" aria-label="Play Dr. Avery introduction">▶</button>
+    <div class="audio-track" role="progressbar" aria-label="Audio progress" onclick="seekAudio(event,'avery_intro')"><div class="audio-fill" id="fill-avery_intro"></div></div>
+    <span class="audio-time" id="time-avery_intro" aria-live="off">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_intro">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-intro')" aria-expanded="false" aria-controls="tr-intro">Show transcript</button>
+  <div class="transcript-box" id="tr-intro" role="note"></div>
+  <div class="avery-quote" id="intro-quote" style="margin-top:.9rem"></div>
+  <div class="avery-body" id="intro-body"></div>
+  <button class="btn-primary" id="intro-enter" onclick="showHub()" style="margin-top:.5rem">Enter the room →</button>
+</div>
+
+<!-- HUB (title/sub + cards filled by boot()) -->
+<div class="screen hub-screen" id="screen-hub" role="region" aria-label="Character selection">
+  <div class="hub-title" id="hub-title"></div>
+  <div class="hub-sub" id="hub-sub"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+  <div class="prog-label" id="prog-label" aria-live="polite">0 of 5 perspectives completed</div>
+  <div class="char-grid" id="char-grid" role="list"></div>
+  <button class="reset-btn" onclick="confirmReset()" aria-label="Reset simulation and start over">↺ Start over</button>
+  <button class="debrief-btn" onclick="show('screen-exit')" aria-label="Skip to Dr. Avery's debrief and finish">Dr. Avery's debrief →</button>
+</div>
+
+<!-- CHAR INTRO -->
+<div class="screen char-intro-screen" id="screen-char-intro" role="region" aria-label="Character introduction">
+  <div class="s-left" id="ci-left">
+    <div class="s-left-color" id="ci-color-panel">
+      <img class="char-portrait" id="ci-portrait" alt="" onerror="this.style.display='none';document.getElementById('ci-portrait-ph').style.display='flex'">
+      <div class="char-portrait-ph" id="ci-portrait-ph" style="display:none"></div>
+      <div class="char-name-large" id="ci-name-large"></div>
+      <div class="char-role-large" id="ci-role-large"></div>
+    </div>
+    <div class="ci-audio-bar" id="ci-bar">
+      <button class="ci-play" id="ci-play-btn" onclick="toggleAudio('char_intro')" aria-label="Play character introduction audio">▶</button>
+      <div class="ci-track" onclick="seekAudio(event,'char_intro')" aria-label="Audio seek bar"><div class="ci-fill" id="fill-char_intro"></div></div>
+      <span class="ci-time" id="time-char_intro">0:00</span>
+    </div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="q-label" id="ci-role-label"></div>
+      <div class="q-text" id="ci-intro-text" style="font-size:.95rem;line-height:1.75;color:#1a2744;font-weight:400"></div>
+      <div class="audio-error" id="err-char_intro" style="color:#c05050;font-size:.74rem;margin-top:.5rem">Audio unavailable</div>
+      <button class="transcript-btn" id="ci-transcript-btn" onclick="toggleTranscript('tr-char')" aria-expanded="false" aria-controls="tr-char" style="margin-top:.6rem">Show transcript</button>
+      <div class="transcript-box" id="tr-char" role="note" style="margin-top:.5rem"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <button class="btn-primary" style="background:#1a2744;font-size:.83rem" onclick="goToQ1()">Begin scenario →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q1 -->
+<div class="screen split-screen" id="screen-q1" role="region" aria-label="Question 1">
+  <div class="s-left">
+    <img class="s-left-img" id="q1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q1-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q1-color-panel" style="display:none">
+      <img class="char-portrait" id="q1-portrait" alt="">
+      <div class="char-name-large" id="q1-char-name"></div>
+    </div>
+    <div class="bubble" id="q1-bubble"></div>
+    <div class="family-flag" id="q1-family" style="display:none"><strong class="family-tag"></strong><span id="q1-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q1-ctx"></div>
+      <div class="q-label">Question 1 of 2</div>
+      <div class="q-text" id="q1-text"></div>
+      <div class="choices" id="q1-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB1 -->
+<div class="screen fb-screen" id="screen-fb1" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb1-color').style.display='flex'">
+    <video class="fb-left-img" id="fb1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb1-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb1-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb1-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb1-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb1-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb1-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb1-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb1-text"></div>
+      <div class="fb-takeaway" id="fb1-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb1-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="screen split-screen" id="screen-q2" role="region" aria-label="Question 2">
+  <div class="s-left">
+    <img class="s-left-img" id="q2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q2-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q2-color-panel" style="display:none">
+      <img class="char-portrait" id="q2-portrait" alt="">
+      <div class="char-name-large" id="q2-char-name"></div>
+    </div>
+    <div class="bubble" id="q2-bubble"></div>
+    <div class="family-flag" id="q2-family" style="display:none"><strong class="family-tag"></strong><span id="q2-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q2-ctx"></div>
+      <div class="q-label">Question 2 of 2</div>
+      <div class="q-text" id="q2-text"></div>
+      <div class="choices" id="q2-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB2 -->
+<div class="screen fb-screen" id="screen-fb2" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb2-color').style.display='flex'">
+    <video class="fb-left-img" id="fb2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb2-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb2-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb2-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb2-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb2-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb2-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb2-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb2-text"></div>
+      <div class="fb-takeaway" id="fb2-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb2-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- EXIT / DEBRIEF (filled by boot()) -->
+<div class="screen exit-screen" id="screen-exit" role="region" aria-label="Simulation complete">
+  <div class="exit-ring" aria-hidden="true">✓</div>
+  <div class="avery-label" id="exit-avery-label" style="color:#7a90b0;margin-bottom:.3rem">DR. PATRICIA AVERY</div>
+  <div class="avery-title" id="exit-title" style="color:#fff;margin-bottom:.3rem"></div>
+  <div class="avery-sub" id="exit-sub" style="margin-bottom:.9rem"></div>
+  <div class="audio-wrap">
+    <button class="audio-play" id="btn-avery_exit" onclick="toggleAudio('avery_exit')" aria-label="Play Dr. Avery closing remarks">▶</button>
+    <div class="audio-track" onclick="seekAudio(event,'avery_exit')" aria-label="Audio progress"><div class="audio-fill" id="fill-avery_exit"></div></div>
+    <span class="audio-time" id="time-avery_exit">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_exit">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-exit')" aria-expanded="false" aria-controls="tr-exit">Show transcript</button>
+  <div class="transcript-box" id="tr-exit" role="note"></div>
+  <div class="avery-review" style="max-width:580px;margin:1.4rem auto 0;text-align:left">
+    <div id="exit-lessons-intro" style="color:#7a90b0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.7rem;text-align:center"></div>
+    <div id="exit-lessons" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </div>
+  <div class="avery-body" id="exit-body" style="margin-top:1.3rem"></div>
+  <div style="max-width:520px;margin:1.5rem auto 0;display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.7rem 1rem;background:rgba(79,168,92,.12);border:1px solid rgba(79,168,92,.4);border-radius:10px">
+    <span aria-hidden="true" style="color:#6fc47a;font-size:1rem;flex-shrink:0">✓</span>
+    <span style="color:#cdeacf;font-size:.82rem;line-height:1.5"><strong style="color:#fff" id="exit-completion"></strong> Continue in your lesson when you're ready.</span>
+  </div>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="confirmReset()">↺ Start over</button>
+    <button class="btn-primary" style="background:#2d3f6e" onclick="showHub()">Review hub</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================================
+   ███  EDIT EVERYTHING IN THIS "TABLE" OBJECT TO MAKE A NEW BRIDGEWELL TABLE ███
+   ----------------------------------------------------------------------------
+   The engine below reads ONLY from TABLE. To build another module:
+     1. Copy this whole file.
+     2. Edit the fields in TABLE (title, accent, intro, the 5 team members, debrief).
+     3. Drop the matching images/audio into  assets/  (see TEMPLATE_GUIDE.md).
+     4. Deploy to its own GitHub repo + Pages, embed the URL in Rise.
+   The Bridgewell team (names, colors, portraits) and the Rivera-Washington
+   family are CANON — keep them consistent across every table.
+   ========================================================================== */
+const TABLE = {
+  "meta": {
+    "title": "The Accountability Question",
+    "moduleLabel": "Module 12 · ALH 4105 · Track: Evaluation & Sustainability",
+    "hubTitle": "The Bridgewell Table",
+    "hubSub": "The first DPP cohort ends in six weeks. Marcus pulled the attendance records and brought an evaluation framework for sign-off — three pages, twelve indicators, and no way to prove the program worked. Sit with each clinician and rebuild it: process vs. outcome, baselines, questions before indicators, risk-reduction metrics tied to the logic model, and a sustainability plan that isn't a wish.",
+    "completion": "You've completed Module 12 — Evaluation & Sustainability. Your plan now has an accountability layer: process and outcome questions, indicators with baselines and success thresholds, a risk-reduction metric tied to the evidence, and a sustainability plan with real sources and dates. Section VII is complete — and with it, the plan.",
+    "familyTag": "RIVERA-WASHINGTON FAMILY"
+  },
+  "theme": {
+    "accent": "#2C8C8C"
+  },
+  "avery": {
+    "label": "DR. PATRICIA AVERY · BRIDGEWELL COMMUNITY HEALTH",
+    "portrait": "assets/avery.png",
+    "intro": {
+      "quote": "\"Marcus brought me three pages — attendance records and twelve indicators — and thought it was an evaluation. So I asked one question: which of these tells me whether a single participant reduced their risk of diabetes? The room went quiet. We could prove we ran the program. We could not prove it worked. An evaluation framework isn't a list of what you measured. It's the design decision that lets you answer the only two questions that matter — did we do what we said, and did it work?\"",
+      "bodyHtml": "Every module until now built the plan: who the population is, what the strategy does, why people engage, where it lives, how it speaks, and how it gets implemented. This module asks the question that decides whether any of it mattered — <strong>did it work?</strong> — and it's a question you have to design for <em>before</em> the program ever runs.<br><br>Evaluation is <strong>not what happens after a program ends</strong>. It's a design decision made before implementation begins. The MAP-IT Track step asks two questions that are not the same question: <em>are you reaching your goals</em>, and <em>is the coalition doing what it planned to do?</em> The first is <strong>outcome</strong> evaluation; the second is <strong>process</strong> evaluation. A program can be delivered exactly as designed and still not work — and you only know which is which if you measured both.<br><br>Today we separate process from outcome, and build the pieces that make each answerable: <strong>baselines</strong> set before the first session, <strong>evaluation questions</strong> that come before indicators, <strong>outcome measures</strong> tied to the logic model with real success thresholds, a <strong>risk-reduction metric</strong> anchored to the evidence that justified the program, and a <strong>sustainability plan</strong> that names specific sources and dates instead of hoping.<br><br>Marcus already learned the hard way that the first cohort has no baselines — its outcomes can never be measured. My team each takes the strand they've carried since Module 7 and turns a list of indicators into a framework that can actually answer for the program. Did we do what we said? And did it work?",
+      "transcript": "Every module until now built the plan: who the population is, what the strategy does, why people engage, where it lives, how it speaks, and how it gets implemented. This module asks the question that decides whether any of it mattered: did it work? And it's a question you have to design for before the program ever runs. Evaluation is not what happens after a program ends. It's a design decision made before implementation begins. The MAP-IT Track step asks two questions that are not the same question: are you reaching your goals, and is the coalition doing what it planned to do? The first is outcome evaluation; the second is process evaluation. A program can be delivered exactly as designed and still not work, and you only know which is which if you measured both. Today we separate process from outcome, and build the pieces that make each answerable: baselines set before the first session, evaluation questions that come before indicators, outcome measures tied to the logic model with real success thresholds, a risk-reduction metric anchored to the evidence that justified the program, and a sustainability plan that names specific sources and dates instead of hoping. Marcus already learned the hard way that the first cohort has no baselines: its outcomes can never be measured. My team each takes the strand they've carried since Module 7 and turns a list of indicators into a framework that can actually answer for the program. Did we do what we said? And did it work?",
+      "audio": "assets/audio/avery_intro_m12.mp3"
+    },
+    "debrief": {
+      "title": "Dr. Avery's Debrief",
+      "sub": "Module 12 · The Accountability Question",
+      "lessonsIntro": "Did we do what we said — and did it work? Two questions, and the framework that answers both.",
+      "bodyHtml": "Marcus walked in with attendance records and twelve indicators and thought he had an evaluation. He had proof the program ran — and no way to know if it worked. That gap is the whole module, and today you closed it. You separated <strong>process</strong> from <strong>outcome</strong> — delivery is not change, and both have to be measured. You learned why the <strong>baseline</strong> has to exist before the first session, because a starting point you didn't measure is gone for good. You put <strong>questions before indicators</strong>, tied every outcome to the <strong>logic model</strong> and the <strong>risk-reduction evidence</strong> that justified the program, and you built a <strong>sustainability plan</strong> that names sources and dates instead of making wishes.<br><br>Now build it for your own population. Your <strong>Evaluation Framework</strong> is Section VII — the accountability layer of everything you've designed: three process and three outcome questions, indicators with data sources and success thresholds, a risk-reduction metric tied to your Module 3–4 evidence, baselines set before implementation, and a sustainability plan with a specific funding source, a partnership to formalize, and an institutional home.<br><br>And hold on to the last question I asked the team. If we run the program, deliver every session with fidelity, hit every attendance target — and participants show no measurable risk reduction — what does that tell us? It tells us the program was delivered but the <strong>theory of change</strong> was wrong. And what do we do? We go back to the logic model and find the link that broke. A team that can answer that has built an evaluation framework. A team that can't is still holding a checklist. You've built the whole plan — assessment to evaluation. Make the evaluation the accountability it deserves.",
+      "transcript": "Marcus walked in with attendance records and twelve indicators and thought he had an evaluation. He had proof the program ran, and no way to know if it worked. That gap is the whole module, and today you closed it. You separated process from outcome: delivery is not change, and both have to be measured. You learned why the baseline has to exist before the first session, because a starting point you didn't measure is gone for good. You put questions before indicators, tied every outcome to the logic model and the risk-reduction evidence that justified the program, and you built a sustainability plan that names sources and dates instead of making wishes. Now build it for your own population. Your Evaluation Framework is Section VII, the accountability layer of everything you've designed: three process and three outcome questions, indicators with data sources and success thresholds, a risk-reduction metric tied to your Module 3 and 4 evidence, baselines set before implementation, and a sustainability plan with a specific funding source, a partnership to formalize, and an institutional home. And hold on to the last question I asked the team. If we run the program, deliver every session with fidelity, hit every attendance target, and participants show no measurable risk reduction, what does that tell us? It tells us the program was delivered but the theory of change was wrong. And what do we do? We go back to the logic model and find the link that broke. A team that can answer that has built an evaluation framework. A team that can't is still holding a checklist. You've built the whole plan, assessment to evaluation. Make the evaluation the accountability it deserves.",
+      "audio": "assets/audio/avery_exit_m12.mp3"
+    }
+  },
+  "team": [
+    {
+      "key": "alicia",
+      "name": "Alicia",
+      "initials": "AR",
+      "creds": "PTA",
+      "color": "#F79646",
+      "bgDark": "#2a1c0a",
+      "phColor": "#fff",
+      "role": "Carmen · Risk reduction & logic model",
+      "ariaName": "Alicia, PTA",
+      "portrait": "assets/alicia.png",
+      "audio": "assets/audio/alicia_m12.mp3",
+      "lesson": "Risk reduction & the logic model — every outcome indicator traces to a logic-model outcome, and at least one metric ties the program to the evidence that justified it (5–7% weight loss → 58% lower progression). Evaluation is the logic model's accountability layer.",
+      "intro": {
+        "role": "Physical Therapist Assistant",
+        "text": "Carmen is why the numbers have to mean something. Her whole reason to walk into the DPP is that losing a little weight cuts her chance of diabetes almost in half — that's the evidence from all the way back in Module 3. So our evaluation has to actually measure that: did participants hit the 5–7% weight threshold the evidence is built on? An indicator that doesn't trace back to the logic model and the evidence is measuring a different program than the one we designed.",
+        "transcript": "Carmen is why the numbers have to mean something. Her whole reason to walk into the DPP is that losing a little weight cuts her chance of diabetes almost in half; that's the evidence from all the way back in Module 3. So our evaluation has to actually measure that: did participants hit the 5 to 7 percent weight threshold the evidence is built on? An indicator that doesn't trace back to the logic model and the evidence is measuring a different program than the one we designed."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/wholegang.jpeg",
+          "pos": "50% 45%"
+        }
+      },
+      "q1": {
+        "bubble": "\"An indicator that doesn't trace to the logic model measures a program you didn't design.\"",
+        "family": true,
+        "familyText": "Carmen Rivera, 72 · prediabetes, secondary-prevention target · the draft framework includes the outcome indicator \"participants will show improved cardiovascular health.\"",
+        "ctx": "EVALUATION AS THE LOGIC MODEL'S ACCOUNTABILITY LAYER — every output is a process-indicator target and every outcome is an outcome-indicator target. An indicator not tied to a logic-model outcome is evaluating a program you didn't design.",
+        "q": "Dr. Avery flags \"participants will show improved cardiovascular health\" immediately. What's the problem?",
+        "choices": [
+          {
+            "text": "It isn't connected to a logic-model outcome, has no measurement method, no baseline, and no threshold — and cardiovascular health is a long-term outcome unlikely to be detectable within the program period. Every indicator must trace to an outcome the logic model actually predicts.",
+            "correct": true,
+            "feedback": "Right. The DPP's logic model predicts weight and glycemic change, not cardiovascular endpoints within a year. An indicator that floats free of the model — with no method, baseline, or threshold — is evaluating a different program.",
+            "takeaway": "Every outcome indicator traces to a logic-model outcome, with a method, baseline, and threshold. Off-model indicators measure a program you didn't build."
+          },
+          {
+            "text": "Cardiovascular health is simply irrelevant to a prediabetes program and should be dropped entirely.",
+            "correct": false,
+            "consequence": "Dismiss it as \"irrelevant\" and you skip the real lesson — the fix is to align indicators to the model, not to rank which health topics count. The next off-model indicator slips through the same way.",
+            "feedback": "It's not that cardiovascular health doesn't matter — it's that this indicator isn't tied to a logic-model outcome, has no measure, baseline, or threshold, and sits beyond the program's time horizon. The problem is alignment, not topic."
+          },
+          {
+            "text": "It's an outcome measure placed in the wrong section — move it to process evaluation and it's fine.",
+            "correct": false,
+            "feedback": "Relocating it doesn't fix it. It still has no logic-model connection, no method, no baseline, and no threshold. A vague indicator is vague in any section."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A risk-reduction metric anchors an outcome to the evidence that justified the program.\"",
+        "family": false,
+        "ctx": "RISK REDUCTION METRIC — at least one indicator ties program outcomes to the epidemiologic evidence from Modules 3–4, anchored to a specific behavioral or clinical threshold and measured from baseline.",
+        "q": "Which is a proper risk-reduction metric for the DPP cohort?",
+        "choices": [
+          {
+            "text": "Share of participants achieving 5–7% body-weight reduction from enrollment baseline — the DPP threshold associated with a 58% lower rate of progression from prediabetes to Type 2 diabetes — measured at 6 and 12 months against a stated target. It ties the outcome to the evidence that justified the program.",
+            "correct": true,
+            "feedback": "Exactly. The 5–7% weight threshold is the behavioral marker the DPP evidence is built on. Measuring it against baseline connects your outcomes straight back to the epidemiology from Modules 3–4.",
+            "takeaway": "A risk-reduction metric anchors an outcome to a specific evidence-based threshold (5–7% weight loss → 58% lower progression), measured from baseline."
+          },
+          {
+            "text": "A count of how many healthy-eating education sessions were delivered to the cohort.",
+            "correct": false,
+            "consequence": "Report \"sessions delivered\" as risk reduction and you've relabeled a process number as an outcome — the cohort's actual risk change stays unmeasured while the report claims otherwise.",
+            "feedback": "Sessions delivered is a process measure — dose delivered — not risk reduction. A risk-reduction metric measures change in the participants against an evidence-based clinical or behavioral threshold."
+          },
+          {
+            "text": "Participants' self-reported satisfaction with the program at the final session.",
+            "correct": false,
+            "feedback": "Satisfaction is participant responsiveness — a process measure — and says nothing about risk. A risk-reduction metric has to tie to a clinical or behavioral threshold from the evidence base."
+          }
+        ]
+      }
+    },
+    {
+      "key": "marcus",
+      "name": "Marcus",
+      "initials": "MC",
+      "creds": "CMA",
+      "color": "#4F81BD",
+      "bgDark": "#1e2e4a",
+      "phColor": "#fff",
+      "role": "Lucia · Process vs. outcome",
+      "ariaName": "Marcus, CMA",
+      "portrait": "assets/marcus.png",
+      "audio": "assets/audio/marcus_m12.mp3",
+      "lesson": "Process vs. outcome — a program can be delivered perfectly and still not work. Attendance proves delivery; only a baseline-to-follow-up comparison proves change. Both are required for accountability, and a baseline can only be taken before the program starts.",
+      "intro": {
+        "role": "Certified Medical Assistant",
+        "text": "I pulled the attendance records for the first DPP cohort — 74% completion, every session logged — and I was proud of it. Then Dr. Avery asked whether any of it showed that a single participant actually lowered their risk. It didn't. I had built a framework that proves we ran the program and can't prove it worked. And worse — we never took baselines, so for this first cohort we can't measure change at all. Evaluation is a design decision. I made it too late.",
+        "transcript": "I pulled the attendance records for the first DPP cohort: 74 percent completion, every session logged, and I was proud of it. Then Dr. Avery asked whether any of it showed that a single participant actually lowered their risk. It didn't. I had built a framework that proves we ran the program and can't prove it worked. And worse, we never took baselines, so for this first cohort we can't measure change at all. Evaluation is a design decision. I made it too late."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/lucia.jpeg",
+          "pos": "50% 28%"
+        },
+        "q2": {
+          "img": "assets/wholegang.jpeg",
+          "pos": "50% 45%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Process proves you ran it. Outcome proves it worked. They're different questions.\"",
+        "family": true,
+        "familyText": "Lucia Rivera's DPP cohort · complete attendance records and session-delivery logs for all 16 sessions · no baseline weight, HbA1c, or confidence measures were collected at enrollment.",
+        "ctx": "PROCESS vs. OUTCOME EVALUATION — process evaluation answers \"did we do what we planned?\" (reach, dose, fidelity). Outcome evaluation answers \"did the program produce change?\" A program with only process data knows it was delivered, not whether it worked.",
+        "q": "With complete attendance and delivery logs but no baseline measures, which evaluation question can the team answer — and which can't they?",
+        "choices": [
+          {
+            "text": "They can answer the process question — was the program delivered as planned — because attendance and delivery logs document reach and dose. They cannot answer the outcome question — did it produce change — because no baseline was measured, so there's nothing to compare follow-up against.",
+            "correct": true,
+            "feedback": "Right. Attendance and delivery logs are process data: they prove the program ran as designed. Outcome evaluation needs a baseline-to-follow-up comparison, and without a baseline there's no way to detect change.",
+            "takeaway": "Process data proves delivery; outcome data proves change. Attendance answers \"did we do it,\" never \"did it work.\""
+          },
+          {
+            "text": "They can answer both — attendance records document process and outcomes at the same time.",
+            "correct": false,
+            "consequence": "Treat attendance as an outcome and a \"74% completion\" gets reported as if it were risk reduction — the cohort's actual health change goes unmeasured and unknown.",
+            "feedback": "Attendance is a single process measure — dose received. It says nothing about whether anyone's HbA1c, weight, or risk actually changed. Process and outcome are different questions requiring different data."
+          },
+          {
+            "text": "They can't answer either question without a comparison (control) group.",
+            "correct": false,
+            "feedback": "A control group strengthens causal claims, but it isn't required to answer these questions. Process is answerable from delivery records now; outcome would be answerable with baseline-to-follow-up data — a comparison group is a separate, higher bar."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A baseline can only be taken before the first session. Miss it and outcome is gone for good.\"",
+        "family": false,
+        "ctx": "THE BASELINE WINDOW — the first cohort enrolled four months ago with no baseline data, so its outcomes can never be measured. The second cohort enrolls in six weeks. Baseline collection has exactly one window.",
+        "q": "What does the missing baseline mean, and what must change before the second cohort?",
+        "choices": [
+          {
+            "text": "For the first cohort, outcome change is now unmeasurable — the team can report process only. For the second cohort, baseline data (weight, HbA1c, confidence) must be collected at enrollment, before the first session, because the evaluation design has to exist before implementation begins, not after.",
+            "correct": true,
+            "feedback": "Exactly. A baseline can only be taken before the program starts; miss that window and outcome evaluation is impossible for good. The fix is structural — build measurement into enrollment for the next cohort.",
+            "takeaway": "Baselines can only be collected before implementation. Evaluation is designed before the program runs — or the outcome question can never be answered."
+          },
+          {
+            "text": "Collect baseline data retroactively from the first cohort's medical records to fill the gap.",
+            "correct": false,
+            "consequence": "Back-fill a \"baseline\" from records taken months into the program and you compare change against a starting point that never existed — a number that looks rigorous and means nothing.",
+            "feedback": "A baseline is the measured starting point before the program begins. Chart values pulled after enrollment already reflect whatever the program has done — they aren't a baseline. The window is closed for cohort one."
+          },
+          {
+            "text": "Extend the first cohort's timeline so baselines can be added later.",
+            "correct": false,
+            "feedback": "You can't add a baseline after implementation has already started — the \"before\" moment is gone. Extending the program doesn't recover a starting point that was never measured."
+          }
+        ]
+      }
+    },
+    {
+      "key": "jordan",
+      "name": "Jordan",
+      "initials": "JD",
+      "creds": "Nutrition",
+      "color": "#4FA85C",
+      "bgDark": "#12331f",
+      "phColor": "#fff",
+      "role": "DeShawn · Questions before indicators",
+      "ariaName": "Jordan, Nutrition",
+      "portrait": "assets/jordan.png",
+      "audio": "assets/audio/jordan_m12.mp3",
+      "lesson": "Questions before indicators — a framework organizes measurement around specific questions, then defines indicators that answer them. A measurable outcome indicator names a construct, a method, a baseline, and a success threshold.",
+      "intro": {
+        "role": "Nutrition Specialist",
+        "text": "Marcus had twelve indicators. I asked him what questions they were supposed to answer, and he couldn't say — the indicators came first and the questions never came at all. So I wrote the questions on the board: did we reach the population, did we deliver with fidelity, did participants hit the weight threshold, did HbA1c move from baseline. Then we mapped indicators to questions. Four of his twelve had a home. The other eight were measurements nobody had asked for. A framework is questions first, indicators second.",
+        "transcript": "Marcus had twelve indicators. I asked him what questions they were supposed to answer, and he couldn't say; the indicators came first and the questions never came at all. So I wrote the questions on the board: did we reach the population, did we deliver with fidelity, did participants hit the weight threshold, did HbA1c move from baseline. Then we mapped indicators to questions. Four of his twelve had a home. The other eight were measurements nobody had asked for. A framework is questions first, indicators second."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/deshawn.jpeg",
+          "pos": "50% 30%"
+        },
+        "q2": {
+          "img": "assets/wholegang.jpeg",
+          "pos": "50% 45%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Questions first, indicators second. Every indicator answers a question.\"",
+        "family": true,
+        "familyText": "DeShawn Washington's strand · the draft framework lists twelve indicators · no evaluation questions, no success thresholds, no sustainability plan.",
+        "ctx": "EVALUATION QUESTIONS FIRST — a framework is organized around specific questions (process and outcome), and every indicator earns its place by answering one. A list of indicators with no questions can't tell you whether the program worked or whether it will continue.",
+        "q": "Dr. Avery says twelve indicators without evaluation questions is a list, not a framework. What's the distinction?",
+        "choices": [
+          {
+            "text": "A framework starts from specific evaluation questions — did we reach the population, deliver with fidelity, produce the intended change — and each indicator exists to answer one, with a defined threshold for success. A bare list measures things without knowing what question they answer or what counts as success.",
+            "correct": true,
+            "feedback": "Right. Questions come first; indicators are how you answer them. Without the questions and thresholds, twelve indicators are just data points that can't add up to \"did it work.\"",
+            "takeaway": "Evaluation questions first, indicators second. Every indicator answers a question and carries a success threshold — or it's just a number."
+          },
+          {
+            "text": "Twelve indicators is simply too many — trimming to the strongest few makes it a framework.",
+            "correct": false,
+            "consequence": "Cut the list to five and you still have five orphan measurements — fewer numbers, still no questions, still no way to say whether the program worked.",
+            "feedback": "The problem isn't the count — it's that no indicator is tied to a question or a success threshold. Three indicators organized around questions is a framework; twelve without questions is still a list."
+          },
+          {
+            "text": "Indicators without data sources aren't measurable — adding a data source to each fixes it.",
+            "correct": false,
+            "feedback": "Data sources matter, but they don't turn a list into a framework. You can know exactly where every number comes from and still have no evaluation questions and no definition of success — which is the actual gap."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A measurable indicator names a construct, a method, a baseline, and a threshold.\"",
+        "family": false,
+        "ctx": "A MEASURABLE OUTCOME INDICATOR — every outcome indicator connects to a logic-model outcome and specifies a construct, a measurement method, a baseline, and a success threshold. \"Participants will improve their health\" is none of these.",
+        "q": "A draft indicator reads: \"Participants will improve their health.\" How should it be rewritten?",
+        "choices": [
+          {
+            "text": "Name a specific construct tied to a logic-model outcome, a method, a baseline, and a threshold — e.g., \"share of participants achieving a 5–7% reduction in body weight from enrollment baseline to 12 months, weighed at each session, target ≥ 40% of completers.\" Specific, measurable, connected to the model.",
+            "correct": true,
+            "feedback": "Yes. A usable outcome indicator says what changes, how it's measured, against what baseline, and what magnitude counts as success — and it maps to an outcome in the logic model.",
+            "takeaway": "A measurable outcome indicator = construct + method + baseline + threshold, tied to a logic-model outcome. \"Improve health\" is a wish, not an indicator."
+          },
+          {
+            "text": "Keep it broad — \"improve their health\" — so the evaluation can capture any benefit the program produces.",
+            "correct": false,
+            "consequence": "Leave it broad and there's no way to say whether it was met; any result can be called \"improvement,\" so the indicator can never actually fail — or succeed.",
+            "feedback": "A broad indicator can't be measured or falsified. If any outcome counts as success, the indicator tells you nothing. Specificity is what makes it usable."
+          },
+          {
+            "text": "Add a comparison group so \"improve their health\" can be tested against a control.",
+            "correct": false,
+            "feedback": "A comparison group doesn't fix an unmeasurable construct. \"Health\" still has no defined measure, baseline, or threshold — you'd be comparing two undefined things. Define the indicator first."
+          }
+        ]
+      }
+    },
+    {
+      "key": "nova",
+      "name": "Nova",
+      "initials": "NV",
+      "creds": "RDH",
+      "color": "#CF95C7",
+      "bgDark": "#2e1b2b",
+      "phColor": "#fff",
+      "role": "Imani · Sustainability",
+      "ariaName": "Nova, RDH",
+      "portrait": "assets/nova.png",
+      "audio": "assets/audio/nova_m12.mp3",
+      "lesson": "Sustainability — a plan names a specific funding source, a partnership to formalize, and an institutionalization strategy, all in motion before the first year ends. \"We'll apply for funding when the grant runs out\" is a wish, not a plan.",
+      "intro": {
+        "role": "Registered Dental Hygienist",
+        "text": "The navigator position that holds this whole program together is funded for one year. Marcus's sustainability section was two sentences — apply for more funding, renew the role if outcomes are good. I told him that's not a plan, it's a wish. In Riverside Flats, a program that launches and vanishes is another broken promise. A real plan names a specific source, a specific partnership to formalize, and a date — and it's moving before the money runs out, not after.",
+        "transcript": "The navigator position that holds this whole program together is funded for one year. Marcus's sustainability section was two sentences: apply for more funding, renew the role if outcomes are good. I told him that's not a plan, it's a wish. In Riverside Flats, a program that launches and vanishes is another broken promise. A real plan names a specific source, a specific partnership to formalize, and a date, and it's moving before the money runs out, not after."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/imani.jpeg",
+          "pos": "50% 28%"
+        },
+        "q2": {
+          "img": "assets/wholegang.jpeg",
+          "pos": "50% 45%"
+        }
+      },
+      "q1": {
+        "bubble": "\"A specific source. A timeline. An application date. That is a plan.\"",
+        "family": true,
+        "familyText": "Imani Washington's primary-prevention cohort depends on the navigator role · funded for one year · sustainability section reads: \"we will apply for additional grant funding when the current grant ends.\"",
+        "ctx": "SUSTAINABILITY IS A PLAN, NOT A WISH — a reactive plan that waits until funding ends leaves no time to secure alternatives. A real plan names specific funding sources, partnership formalizations, and institutionalization strategies before the initial funding period ends.",
+        "q": "Why is \"we'll apply for funding when the grant ends\" returned as inadequate?",
+        "choices": [
+          {
+            "text": "It's reactive — waiting until funding ends leaves no time to secure alternatives — and it names no specific source, partnership, or institutionalization strategy. Real sustainability planning identifies specific funding sources, formalizes partnerships, and embeds the program before the first funding period ends.",
+            "correct": true,
+            "feedback": "Right. Sustainability is built in from the start, not triggered at the cliff. A plan names specifics — a source, an application date, an MOU, an institutional home — and starts moving before the money's gone.",
+            "takeaway": "Sustainability is proactive and specific: named funding source, formalized partnership, institutionalization strategy — all in motion before funding ends."
+          },
+          {
+            "text": "Grant funding isn't a legitimate sustainability strategy — the plan should rely only on earned revenue.",
+            "correct": false,
+            "consequence": "Rule out grants entirely and you throw away a real option; the flaw was never that it's a grant — it's that no source or date was named. You trade one gap for another.",
+            "feedback": "Grants are a legitimate strategy — the flaw is that the plan is reactive and unspecific, not that it mentions grants. A named grant with an application date before the cliff would be part of a real plan."
+          },
+          {
+            "text": "It just needs a specific grant named — identify one grant and the plan is complete.",
+            "correct": false,
+            "feedback": "A named grant is a start, but a sustainability plan needs more than one funding line: partnership formalization and institutionalization too, so the program doesn't rest on a single point of failure."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Fund it, formalize it, and embed it — before the year runs out.\"",
+        "family": false,
+        "ctx": "THREE SUSTAINABILITY STRATEGIES — funding (a specific alternative source), partnership (a formal MOU), and institutionalization (embedding the program so it survives one champion leaving). Evaluation data is what makes the case for each.",
+        "q": "Which is a real sustainability plan for the Bridgewell navigator role?",
+        "choices": [
+          {
+            "text": "Three specific moves in motion before the cohort ends: FQHC billing for the navigator's care-coordination services; a CDC DPRP recognition application that would open Medicare reimbursement for the DPP; and a formal MOU embedding the navigator role in the Riverside Flats Coalition's 3-year strategic plan — with the evaluation data assembled to support each.",
+            "correct": true,
+            "feedback": "Exactly. A funding source, a partnership formalization, and an institutional home — none guaranteed, all moving early, each backed by the evaluation data funders will require. That's a plan, not a wish.",
+            "takeaway": "A real plan works all three levers — a specific funding source, a formal partnership, and institutionalization — early, with evaluation data to make the case."
+          },
+          {
+            "text": "Deliver a strong first cohort and let the results speak for themselves — good outcomes will attract funding on their own.",
+            "correct": false,
+            "consequence": "Wait for results to \"speak for themselves\" and the navigator's year runs out mid-search; by the time outcomes are in, the role is already gone and the program stalls.",
+            "feedback": "Good outcomes help the case, but funders need a specific application, partnership, and timeline — not just results. Sustainability has to move in parallel with the program, not wait on its outcomes."
+          },
+          {
+            "text": "Name FQHC billing as the funding source and consider sustainability handled.",
+            "correct": false,
+            "feedback": "One funding line is a single point of failure. Sustainability also needs a formalized partnership and an institutional home so the program survives a lost contract or a departing champion — one lever isn't a plan."
+          }
+        ]
+      }
+    },
+    {
+      "key": "elena",
+      "name": "Elena",
+      "initials": "EL",
+      "creds": "RRT",
+      "color": "#B3A2C7",
+      "bgDark": "#211a2e",
+      "phColor": "#fff",
+      "role": "Marco · Process evaluation",
+      "ariaName": "Elena, RRT",
+      "portrait": "assets/elena.png",
+      "audio": "assets/audio/elena_m12.mp3",
+      "lesson": "Process evaluation — reach, dose delivered, dose received, fidelity, participant responsiveness, and program differentiation. Attendance is only dose received; a complete process plan documents all six, each defined before implementation.",
+      "intro": {
+        "role": "Registered Respiratory Therapist",
+        "text": "Marco's strand is school-based prevention, and it's where I kept asking: how will we know we actually delivered this the way we designed it? Attendance is one answer — dose received — but it's only one. Did we reach the students we meant to reach? Did we run every session as written, or did pieces quietly drop out? Did the kids find it worth their time? Process evaluation is six questions, not one — and attendance alone tells you almost nothing about whether the program was really delivered.",
+        "transcript": "Marco's strand is school-based prevention, and it's where I kept asking: how will we know we actually delivered this the way we designed it? Attendance is one answer, dose received, but it's only one. Did we reach the students we meant to reach? Did we run every session as written, or did pieces quietly drop out? Did the kids find it worth their time? Process evaluation is six questions, not one, and attendance alone tells you almost nothing about whether the program was really delivered."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/marco.jpeg",
+          "pos": "50% 25%"
+        },
+        "q2": {
+          "img": "assets/wholegang.jpeg",
+          "pos": "50% 45%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Attendance is one component — dose received. Process evaluation has six.\"",
+        "family": true,
+        "familyText": "Marco Rivera-Washington's school-based strand · the process plan tracks attendance and completion rates · nothing else is documented.",
+        "ctx": "PROCESS EVALUATION COMPONENTS — reach, dose delivered, dose received, fidelity, participant responsiveness, and program differentiation. Each is a distinct question; each needs its own indicator, defined before implementation.",
+        "q": "A process plan that tracks only attendance and completion is called incomplete. What's missing?",
+        "choices": [
+          {
+            "text": "Attendance addresses dose received only. Process evaluation also requires reach (did we get the intended population), dose delivered (were all sessions actually run as designed), fidelity (were core elements maintained), participant responsiveness (did participants engage), and program differentiation — none of which attendance captures.",
+            "correct": true,
+            "feedback": "Right. Attendance is one component — dose received. A complete process plan documents reach, dose delivered, dose received, fidelity, responsiveness, and differentiation, each with its own indicator.",
+            "takeaway": "Process evaluation has six components; attendance is just one (dose received). Reach, dose delivered, fidelity, and responsiveness need their own indicators."
+          },
+          {
+            "text": "Nothing's missing from process — the plan just needs outcome indicators added, since attendance already covers process.",
+            "correct": false,
+            "consequence": "Call process \"done\" at attendance and you'll never know the program reached the wrong students or dropped half its core content — delivery failures hide behind a healthy-looking attendance rate.",
+            "feedback": "Attendance is a single process component, not all of process. Adding outcomes doesn't fix an incomplete process plan that still can't tell you about reach, fidelity, or responsiveness."
+          },
+          {
+            "text": "Attendance and completion are outcome measures, so the plan is missing all of its process indicators.",
+            "correct": false,
+            "feedback": "Attendance and completion are process measures — specifically dose received — not outcomes. The plan has one process component; it's missing the other five, not all of them."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Every component needs an indicator, a source, a method, and an owner — set before day one.\"",
+        "family": false,
+        "ctx": "THE PROCESS MATRIX — for each component, name an indicator, a data source, a collection method, and a responsible person, all defined before the program runs.",
+        "q": "Which is a complete process indicator set for the cohort?",
+        "choices": [
+          {
+            "text": "Reach: share of screened-positive Riverside Flats adults referred who enrolled. Dose delivered: sessions held vs. the 16 planned. Dose received: average attendance per participant. Fidelity: weekly check-in confirming core curriculum elements were covered. Responsiveness: brief exit survey each session — each with a data source, method, and owner.",
+            "correct": true,
+            "feedback": "Exactly. Every process component has a concrete indicator, a source, a method, and a responsible person — a matrix someone could actually run from day one.",
+            "takeaway": "A usable process matrix gives every component an indicator, a data source, a collection method, and an owner — set before implementation."
+          },
+          {
+            "text": "Track attendance carefully and thoroughly — it's the single most important number, so a strong attendance log is a sufficient process plan.",
+            "correct": false,
+            "consequence": "Rest the whole process story on attendance and a program that reached the wrong people, or dropped core sessions, still posts a clean log — the failure stays invisible until outcomes disappoint.",
+            "feedback": "Attendance is one component done well, but it can't stand in for reach, fidelity, or responsiveness. A single strong indicator isn't a process plan."
+          },
+          {
+            "text": "Wait until the program ends, then reconstruct reach, dose, and fidelity from whatever records exist.",
+            "correct": false,
+            "feedback": "Process indicators must be defined before implementation and collected as you go — reconstructing them afterward from incomplete records is exactly the failure that leaves gaps you can't fill."
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ============================ ENGINE (do not edit per-table) ================ */
+// Derive the engine's lookup tables from TABLE. Adding/reordering members in
+// TABLE.team automatically updates the hub, progress count, and debrief.
+const TEAM = TABLE.team;
+const TEAM_KEYS = TEAM.map(t=>t.key);
+const byKey = {}; TEAM.forEach(t=>byKey[t.key]=t);
+
+const PORTRAITS = { avery:TABLE.avery.portrait };
+TEAM.forEach(t=>PORTRAITS[t.key]=t.portrait);
+
+const SCENE_IMG = 'assets/conferenceroom.jpg';
+const SCENE_ASSETS = {};
+TEAM.forEach(t=>SCENE_ASSETS[t.key]=t.scenes||{});
+function sceneFor(name,qNum){
+  const e=(SCENE_ASSETS[name]||{})['q'+qNum];
+  if(e&&e.video)return{video:e.video,pos:e.pos};
+  if(typeof e==='string')return{img:e};
+  if(e&&e.img)return{img:e.img,pos:e.pos};
+  return{img:SCENE_IMG};
+}
+const SCENE_BLOB = {};
+
+const AUDIO_URLS = { avery_intro:TABLE.avery.intro.audio, avery_exit:TABLE.avery.debrief.audio };
+TEAM.forEach(t=>AUDIO_URLS[t.key]=t.audio);
+
+const TRANSCRIPTS = { avery_intro:TABLE.avery.intro.transcript, avery_exit:TABLE.avery.debrief.transcript };
+TEAM.forEach(t=>TRANSCRIPTS[t.key]=(t.intro&&t.intro.transcript)||t.intro.text);
+
+const CHARS = {};
+TEAM.forEach(t=>{ CHARS[t.key]={color:t.color,bgDark:t.bgDark,audioKey:t.key,intro:t.intro,q1:t.q1,q2:t.q2}; });
+
+const TOTAL = TEAM_KEYS.length;
+
+const audios={};
+let currentChar=null, completed={}, q1Wrong=0, q2Wrong=0;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Compute accent shades from a single hex so the whole UI re-themes per module.
+function applyTheme(hex){
+  function h2(x){return parseInt(x,16);}
+  const c=hex.replace('#','');
+  const r=h2(c.slice(0,2)),g=h2(c.slice(2,4)),b=h2(c.slice(4,6));
+  const mix=(t,a)=>[Math.round(r+(t[0]-r)*a),Math.round(g+(t[1]-g)*a),Math.round(b+(t[2]-b)*a)];
+  const rs=document.documentElement.style;
+  rs.setProperty('--accent',hex);
+  rs.setProperty('--accent-hover','rgb('+mix([0,0,0],.2).join(',')+')');
+  rs.setProperty('--accent-focus','rgb('+mix([255,255,255],.4).join(',')+')');
+  rs.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.07)');
+  rs.setProperty('--accent-soft2','rgba('+r+','+g+','+b+',.13)');
+}
+
+// Populate the static screens (intro / hub cards / debrief) from TABLE.
+function boot(){
+  applyTheme(TABLE.theme.accent);
+  document.title = TABLE.meta.title + ' · ' + TABLE.meta.moduleLabel;
+
+  // intro
+  document.getElementById('intro-avery-photo').src=TABLE.avery.portrait;
+  document.getElementById('intro-avery-label').textContent=TABLE.avery.label;
+  document.getElementById('intro-title').textContent=TABLE.meta.title;
+  document.getElementById('intro-sub').textContent=TABLE.meta.moduleLabel;
+  document.getElementById('tr-intro').textContent=TABLE.avery.intro.transcript;
+  document.getElementById('intro-quote').textContent=TABLE.avery.intro.quote;
+  document.getElementById('intro-body').innerHTML=TABLE.avery.intro.bodyHtml;
+
+  // hub
+  document.getElementById('hub-title').textContent=TABLE.meta.hubTitle;
+  document.getElementById('hub-sub').textContent=TABLE.meta.hubSub;
+  document.getElementById('char-grid').innerHTML=TEAM.map(t=>(
+    '<div class="char-card" id="card-'+t.key+'" style="background:'+t.bgDark+';border-color:'+t.color+'" '+
+    'onclick="startChar(\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')startChar(\''+t.key+'\')" '+
+    'tabindex="0" role="listitem button" aria-label="'+esc(t.ariaName||t.name)+'">'+
+    '<img class="char-avatar" src="'+t.portrait+'" alt="'+esc(t.name)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="char-avatar-ph" style="background:'+t.color+';color:'+(t.phColor||'#fff')+';display:none">'+esc(t.initials||'')+'</div>'+
+    '<div class="char-name">'+esc(t.name)+'</div><div class="char-role">'+esc(t.role)+'</div>'+
+    '</div>'
+  )).join('');
+
+  // family / consequence flag labels (canon, constant)
+  document.querySelectorAll('.family-tag').forEach(e=>e.textContent=TABLE.meta.familyTag);
+  document.querySelectorAll('.consequence-tag').forEach(e=>e.textContent='CONSEQUENCE · '+TABLE.meta.familyTag);
+
+  // debrief
+  document.getElementById('exit-title').textContent=TABLE.avery.debrief.title;
+  document.getElementById('exit-sub').textContent=TABLE.avery.debrief.sub;
+  document.getElementById('tr-exit').textContent=TABLE.avery.debrief.transcript;
+  document.getElementById('exit-lessons-intro').textContent=TABLE.avery.debrief.lessonsIntro;
+  document.getElementById('exit-lessons').innerHTML=TEAM.map(t=>(
+    '<div style="display:flex;gap:.65rem;align-items:flex-start">'+
+    '<span style="width:9px;height:9px;border-radius:50%;background:'+t.color+';margin-top:.4rem;flex-shrink:0"></span>'+
+    '<div style="color:#cdd8e6;font-size:.8rem;line-height:1.55"><strong style="color:#fff">'+esc(t.name)+' ('+esc(t.creds)+'):</strong> '+esc(t.lesson)+'</div></div>'
+  )).join('');
+  document.getElementById('exit-body').innerHTML=TABLE.avery.debrief.bodyHtml;
+  document.getElementById('exit-completion').textContent=TABLE.meta.completion;
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+}
+
+function getAudio(key){
+  if(!audios[key]){
+    const url=key==='char_intro'?AUDIO_URLS[currentChar]:AUDIO_URLS[key];
+    if(!url)return null;
+    const a=new Audio();
+    audios[key]=a;
+    a.addEventListener('timeupdate',()=>updateAudioProgress(key,a));
+    a.addEventListener('ended',()=>{
+      const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+      if(btn)btn.textContent='▶';
+    });
+    a.addEventListener('error',()=>showAudioError(key));
+    a.src=url;
+  }
+  return audios[key];
+}
+
+function showAudioError(key){
+  const errId=key==='char_intro'?'err-char_intro':`err-${key}`;
+  const errEl=document.getElementById(errId);
+  if(errEl)errEl.style.display='block';
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn){btn.textContent='✕';btn.disabled=true;}
+}
+
+function resetPlayButton(key){
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn)btn.textContent='▶';
+}
+
+let activeKey=null;
+
+function btnFor(key){
+  return key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+}
+
+function playKey(key){
+  stopAllAudio('');
+  const a=getAudio(key);if(!a)return;
+  activeKey=key;
+  a.play().then(()=>{
+    if(activeKey!==key){a.pause();return;}
+    const b=btnFor(key);if(b)b.textContent='⏸';
+  }).catch(()=>{
+    if(activeKey===key)resetPlayButton(key);
+  });
+}
+
+function toggleAudio(key){
+  const a=getAudio(key);if(!a)return;
+  if(a.paused){
+    playKey(key);
+  } else {
+    a.pause();activeKey=null;
+    const b=btnFor(key);if(b)b.textContent='▶';
+  }
+}
+
+function stopAllAudio(except){
+  if(activeKey&&activeKey!==except)activeKey=null;
+  Object.keys(audios).forEach(k=>{
+    if(k!==except&&audios[k]&&!audios[k].paused){
+      audios[k].pause();
+      const btn=btnFor(k);
+      if(btn)btn.textContent='▶';
+    }
+  });
+}
+
+function updateAudioProgress(key,a){
+  if(!a.duration)return;
+  const pct=a.currentTime/a.duration*100;
+  const fillId=key==='char_intro'?'fill-char_intro':'fill-'+key;
+  const timeId=key==='char_intro'?'time-char_intro':'time-'+key;
+  const fill=document.getElementById(fillId);
+  const time=document.getElementById(timeId);
+  if(fill)fill.style.width=pct+'%';
+  if(time){const m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60).toString().padStart(2,'0');time.textContent=m+':'+s;}
+}
+
+function seekAudio(e,key){
+  const a=getAudio(key);if(!a||!a.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  a.currentTime=Math.max(0,Math.min(1,pct))*a.duration;
+}
+
+function toggleTranscript(id){
+  const el=document.getElementById(id);
+  const btn=document.querySelector(`[aria-controls="${id}"]`);
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(btn){btn.textContent=open?'Show transcript':'Hide transcript';btn.setAttribute('aria-expanded',!open);}
+}
+
+function announce(msg){
+  const r=document.getElementById('live-region');
+  if(r){r.textContent='';setTimeout(()=>r.textContent=msg,50);}
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');const first=el.querySelector('button,[tabindex="0"]');if(first)setTimeout(()=>first.focus(),100);}
+}
+
+function showHub(){
+  stopAllAudio('');
+  updateHub();
+  show('screen-hub');
+  if(TEAM_KEYS.every(c=>completed[c])){setTimeout(()=>{show('screen-exit');announce('Simulation complete. All perspectives reviewed.');},400);}
+}
+
+function updateHub(){
+  const done=Object.keys(completed).length;
+  document.getElementById('prog').style.width=(done/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=done+' of '+TOTAL+' perspectives completed';
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(!card)return;
+    if(completed[c]){
+      card.classList.add('done');
+      card.setAttribute('tabindex','-1');
+      card.setAttribute('aria-disabled','true');
+      if(!card.querySelector('.done-badge')){const b=document.createElement('div');b.className='done-badge';b.textContent='✓';b.setAttribute('aria-hidden','true');card.appendChild(b);}
+    }
+  });
+}
+
+function confirmReset(){ resetSim(); }
+
+function resetSim(){
+  completed={};q1Wrong=0;q2Wrong=0;activeKey=null;
+  Object.keys(audios).forEach(k=>{audios[k].pause();audios[k].currentTime=0;const b=btnFor(k);if(b)b.textContent='▶';});
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(card){card.classList.remove('done');card.setAttribute('tabindex','0');card.removeAttribute('aria-disabled');const b=card.querySelector('.done-badge');if(b)b.remove();}
+  });
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+  show('screen-intro');
+  announce('Simulation reset. Starting over.');
+}
+
+function startChar(name){
+  if(completed[name])return;
+  currentChar=name;q1Wrong=0;q2Wrong=0;
+  if(audios['char_intro']){audios['char_intro'].pause();audios['char_intro'].currentTime=0;delete audios['char_intro'];}
+  const d=CHARS[name];
+  const panel=document.getElementById('ci-color-panel');
+  panel.style.background=d.bgDark;
+  const portrait=document.getElementById('ci-portrait');
+  portrait.src=PORTRAITS[name];portrait.alt=name.charAt(0).toUpperCase()+name.slice(1);
+  portrait.style.display='block';
+  document.getElementById('ci-portrait-ph').style.display='none';
+  document.getElementById('ci-portrait-ph').textContent=(byKey[name].initials||name.slice(0,2).toUpperCase());
+  document.getElementById('ci-name-large').textContent=byKey[name].name;
+  document.getElementById('ci-role-large').textContent=d.intro.role;
+  document.getElementById('ci-bar').style.borderColor=d.color;
+  document.getElementById('ci-play-btn').style.background=d.color;
+  document.getElementById('fill-char_intro').style.background=d.color;
+  document.getElementById('ci-play-btn').textContent='▶';
+  document.getElementById('ci-play-btn').disabled=false;
+  document.getElementById('fill-char_intro').style.width='0%';
+  document.getElementById('time-char_intro').textContent='0:00';
+  document.getElementById('err-char_intro').style.display='none';
+  document.getElementById('ci-role-label').textContent=d.intro.role;
+  document.getElementById('ci-intro-text').textContent=d.intro.text;
+  document.getElementById('tr-char').textContent=TRANSCRIPTS[name]||'';
+  document.getElementById('tr-char').style.display='none';
+  const tcBtn=document.getElementById('ci-transcript-btn');
+  if(tcBtn){tcBtn.textContent='Show transcript';tcBtn.setAttribute('aria-expanded','false');}
+  show('screen-char-intro');
+  announce(byKey[name].name+' — '+d.intro.role);
+}
+
+function goToQ1(){stopAllAudio('');renderQ1();show('screen-q1');announce('Question 1 of 2');}
+
+function playSceneVideo(vidEl,imgEl,src){
+  if(!vidEl)return;
+  vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;
+  const fail=()=>{vidEl.style.display='none';if(imgEl){imgEl.src=SCENE_IMG;imgEl.style.display='block';}};
+  vidEl.onerror=fail;
+  vidEl.style.display='block';
+  const go=()=>vidEl.play().catch(()=>{});
+  if(SCENE_BLOB[src]){vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();return;}
+  fetch(src).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{
+    if(!SCENE_BLOB[src])SCENE_BLOB[src]=URL.createObjectURL(b);
+    vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();
+  }).catch(fail);
+}
+
+function setSceneImg(qNum,name,isColor){
+  const sceneEl=document.getElementById(`q${qNum}-scene-img`);
+  const vidEl=document.getElementById(`q${qNum}-scene-vid`);
+  const colorEl=document.getElementById(`q${qNum}-color-panel`);
+  const portEl=document.getElementById(`q${qNum}-portrait`);
+  const nameEl=document.getElementById(`q${qNum}-char-name`);
+  const d=CHARS[name];
+  const sc=isColor?{}:sceneFor(name,qNum);
+  const hasVid=!!sc.video;
+  const hasImg=!!sc.img;
+  if(hasVid){
+    playSceneVideo(vidEl,sceneEl,sc.video);
+    sceneEl.style.display='none';
+    if(colorEl)colorEl.style.display='none';
+  } else if(hasImg){
+    sceneEl.src=sc.img;sceneEl.style.display='block';sceneEl.style.objectPosition=sc.pos||'center';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl)colorEl.style.display='none';
+  } else {
+    sceneEl.style.display='none';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl){colorEl.style.display='flex';colorEl.style.background=d.bgDark;}
+    if(portEl){portEl.src=PORTRAITS[name];portEl.alt=name;}
+    if(nameEl)nameEl.textContent=byKey[name].name;
+  }
+  const fbSceneEl=document.getElementById(`fb${qNum}-scene-img`);
+  const fbVidEl=document.getElementById(`fb${qNum}-scene-vid`);
+  const fbColorEl=document.getElementById(`fb${qNum}-color`);
+  const fbPortEl=document.getElementById(`fb${qNum}-portrait`);
+  if(hasVid){
+    playSceneVideo(fbVidEl,fbSceneEl,sc.video);
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else if(hasImg){
+    if(fbSceneEl){fbSceneEl.src=sc.img;fbSceneEl.style.display='block';fbSceneEl.style.objectPosition=sc.pos||'center';}
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else {
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl){fbColorEl.style.display='flex';fbColorEl.style.background=d.bgDark;}
+    if(fbPortEl){fbPortEl.src=PORTRAITS[name];fbPortEl.alt=name;}
+  }
+}
+
+function renderQ1(){
+  const d=CHARS[currentChar].q1;
+  setSceneImg(1,currentChar,false);
+  document.getElementById('q1-bubble').textContent=d.bubble;
+  document.getElementById('q1-ctx').textContent=d.ctx;
+  document.getElementById('q1-text').textContent=d.q;
+  const fam=document.getElementById('q1-family');
+  if(d.family){fam.style.display='block';document.getElementById('q1-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q1-choices',d.choices,handleQ1);
+}
+
+function renderQ2(){
+  const d=CHARS[currentChar].q2;
+  setSceneImg(2,currentChar,false);
+  document.getElementById('q2-bubble').textContent=d.bubble;
+  document.getElementById('q2-ctx').textContent=d.ctx;
+  document.getElementById('q2-text').textContent=d.q;
+  const fam=document.getElementById('q2-family');
+  if(d.family){fam.style.display='block';document.getElementById('q2-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q2-choices',d.choices,handleQ2);
+}
+
+function renderChoices(id,choices,handler){
+  const el=document.getElementById(id);el.innerHTML='';
+  const shuffled=choices.slice();
+  for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+  shuffled.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.setAttribute('aria-label','Option '+(i+1)+': '+ch.text);
+    btn.innerHTML='<div class="cbullet" aria-hidden="true"></div><span class="ctext">'+esc(ch.text)+'</span>';
+    btn.onclick=()=>{
+      [...el.querySelectorAll('.choice-btn')].forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(()=>handler(ch),220);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function handleQ1(ch){
+  const chosen=document.getElementById('fb1-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb1-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb1-consequence');
+  const averyEl=document.getElementById('fb1-avery');
+  const takeEl=document.getElementById('fb1-takeaway');
+  const actions=document.getElementById('fb1-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    addBtn(actions,'Continue to Question 2 →',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback);
+  } else {
+    q1Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb1-consequence-text').textContent=ch.consequence;}
+    if(q1Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb1-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ1();show('screen-q1');});
+    addBtn(actions,'Skip to Question 2',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb1');
+}
+
+function handleQ2(ch){
+  const chosen=document.getElementById('fb2-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb2-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb2-consequence');
+  const averyEl=document.getElementById('fb2-avery');
+  const takeEl=document.getElementById('fb2-takeaway');
+  const actions=document.getElementById('fb2-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    completed[currentChar]=true;updateHub();
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback+' Perspective complete.');
+  } else {
+    q2Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb2-consequence-text').textContent=ch.consequence;}
+    if(q2Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb2-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ2();show('screen-q2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb2');
+}
+
+function addBtn(container,label,fn){
+  const btn=document.createElement('button');
+  btn.className='fb-btn';
+  btn.innerHTML='<div class="fbullet" aria-hidden="true"></div><span class="fb-btn-text">'+esc(label)+'</span>';
+  btn.onclick=fn;container.appendChild(btn);
+}
+
+boot();   // populate screens from TABLE
+// No autoplay on load: narration starts only when the learner presses play.
+</script>
+</body>
+</html>
